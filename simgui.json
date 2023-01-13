@@ -1,0 +1,49 @@
+{
+  "HALProvider": {
+    "Other Devices": {
+      "SPARK MAX [5]": {
+        "header": {
+          "open": true
+        }
+      },
+      "navX-Sensor[0]": {
+        "header": {
+          "open": true
+        }
+      },
+      "window": {
+        "visible": false
+      }
+    }
+  },
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Field": "Field2d"
+    },
+    "windows": {
+      "/SmartDashboard/Field": {
+        "Robot": {
+          "length": 1.0,
+          "weight": 2.0,
+          "width": 1.0
+        },
+        "height": 12.0,
+        "width": 25.0,
+        "window": {
+          "visible": true
+        }
+      }
+    }
+  },
+  "NetworkTables": {
+    "Retained Values": {
+      "open": false
+    },
+    "transitory": {
+      "SmartDashboard": {
+        "open": true
+      }
+    }
+  }
+}
