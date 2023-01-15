@@ -118,10 +118,10 @@ public class SwerveModule {
         simulationPeriodic(0.02);
     }
 
-    public void setDesiredState(State desiredShit, Rotation2d desiredRotation){
+    public void setDesiredState(SwerveModuleState desiredState, Rotation2d desiredRotation){
         updatePIDValues();
 
-        translationPIDOutput = translationPIDController.calculate(translationVelocity, desiredShit.velocityMetersPerSecond / 18);
+        translationPIDOutput = translationPIDController.calculate(translationVelocity, desiredState.speedMetersPerSecond / 18);
         rotationPIDOutput = rotationPIDController.calculate(Units.degreesToRadians(rotationRelativeEncoder.getPosition() % 360), desiredRotation.getRadians());
 
         translationMotor.set(translationPIDOutput);

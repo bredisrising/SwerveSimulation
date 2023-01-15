@@ -210,6 +210,16 @@ public class DriveSubsystem extends SubsystemBase {
     backRight.setDesiredState(desiredStates[3]);
   }
 
+  public void setModuleStates(SwerveModuleState[] desiredStates, Rotation2d desiredRotation){
+    SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, kMaxSpeed);
+
+
+    frontLeft.setDesiredState(desiredStates[0], desiredRotation);
+    frontRight.setDesiredState(desiredStates[1], desiredRotation);
+    backLeft.setDesiredState(desiredStates[2], desiredRotation);
+    backRight.setDesiredState(desiredStates[3], desiredRotation);
+  }
+
 
   public void putPIDValues(){
     SmartDashboard.putNumber("translationP", 0);
@@ -248,31 +258,17 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     double magnitude =  Math.sqrt( Math.pow(distance.getX(), 2) + Math.pow(distance.getY(), 2) ) ;
-    double xSpeed = distance.getX();
-    double ySpeed = distance.getY(); 
+    double xSpeed = distance.getX() / magnitude;
+    double ySpeed = distance.getY() / magnitude; 
 
-    xSpeed *= 1;
-    ySpeed *= 1;
+    xSpeed *= 0.5;
+    ySpeed *= 0.5;
 
-    ChassisSpeeds desiredSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, 0, getRotation2d());
+    ChassisSpeeds desiredSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, distance.getRotation().getRadians() / 60, getRotation2d());
 
     SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(desiredSpeeds);
     
     
-    //setAllModuleStates(desiredState, -desiredRotation);
     this.setModuleStates(moduleStates);
   }
-
-  void setAllModuleStates(State desiredState, double desiredRotation){
-
-
-    frontLeft.setDesiredState(desiredState, Rotation2d.fromDegrees(desiredRotation));
-    frontRight.setDesiredState(desiredState, Rotation2d.fromDegrees(desiredRotation));
-    backLeft.setDesiredState(desiredState, Rotation2d.fromDegrees(desiredRotation));
-    backRight.setDesiredState(desiredState, Rotation2d.fromDegrees(desiredRotation));
-
-  }
-
-
-  
 }
