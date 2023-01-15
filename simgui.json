@@ -1,21 +1,4 @@
 {
-  "HALProvider": {
-    "Other Devices": {
-      "SPARK MAX [5]": {
-        "header": {
-          "open": true
-        }
-      },
-      "navX-Sensor[0]": {
-        "header": {
-          "open": true
-        }
-      },
-      "window": {
-        "visible": false
-      }
-    }
-  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
@@ -24,26 +7,25 @@
     "windows": {
       "/SmartDashboard/Field": {
         "Robot": {
-          "length": 1.0,
-          "weight": 2.0,
-          "width": 1.0
+          "image": "D:\\Downloads\\teja.jpg",
+          "length": 0.6859999895095825,
+          "width": 0.6859999895095825
         },
-        "height": 12.0,
-        "width": 25.0,
+        "height": 12.210000038146973,
+        "traj": {
+          "arrows": false,
+          "length": 0.10000000149011612,
+          "weight": 1.0,
+          "width": 0.10000000149011612
+        },
+        "width": 24.979999542236328,
         "window": {
           "visible": true
         }
       }
     }
   },
-  "NetworkTables": {
-    "Retained Values": {
-      "open": false
-    },
-    "transitory": {
-      "SmartDashboard": {
-        "open": true
-      }
-    }
+  "NetworkTables View": {
+    "visible": false
   }
 }

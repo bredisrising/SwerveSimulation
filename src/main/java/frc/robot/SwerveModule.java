@@ -1,5 +1,7 @@
 package frc.robot;
 
+import org.opencv.core.RotatedRect;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -12,6 +14,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.Trajectory.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
@@ -25,7 +28,7 @@ public class SwerveModule {
     double wheelRadius = 3;
 
     private PIDController translationPIDController = new PIDController(10, .0, 1);
-    private ProfiledPIDController rotationPIDController = new ProfiledPIDController(.5, 0.0, 1, new TrapezoidProfile.Constraints(15, 30));
+    private ProfiledPIDController rotationPIDController = new ProfiledPIDController(.35, 0.0, 1, new TrapezoidProfile.Constraints(Constants.maxAngularVelocity, 30));
 
 
     private FlywheelSim translationSim;
@@ -112,6 +115,18 @@ public class SwerveModule {
         
         rotationMotor.set(rotationPIDOutput);
         
+        simulationPeriodic(0.02);
+    }
+
+    public void setDesiredState(State desiredShit, Rotation2d desiredRotation){
+        updatePIDValues();
+
+        translationPIDOutput = translationPIDController.calculate(translationVelocity, desiredShit.velocityMetersPerSecond / 18);
+        rotationPIDOutput = rotationPIDController.calculate(Units.degreesToRadians(rotationRelativeEncoder.getPosition() % 360), desiredRotation.getRadians());
+
+        translationMotor.set(translationPIDOutput);
+        rotationMotor.set(rotationPIDOutput);
+
         simulationPeriodic(0.02);
     }
 

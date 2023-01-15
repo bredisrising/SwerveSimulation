@@ -13,6 +13,7 @@ public final class Constants {
   }
 
   public static final double maxSpeed = 12.0;
+  public static final double maxAngularVelocity = 2.5;
   public static final double wheelBaseX = 8;
   public static final double wheelBaseY = 9;
 

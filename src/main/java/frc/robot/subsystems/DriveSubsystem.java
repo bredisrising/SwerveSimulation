@@ -8,19 +8,25 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.Trajectory.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.SwerveModule;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -37,19 +43,21 @@ public class DriveSubsystem extends SubsystemBase {
   private SwerveModule backRight = new SwerveModule(6, 7, true, true, "backRight");
   
 
-
   private double kMaxSpeed = 10;
-  private double kMaxAngularSpeed = 10;
+  private double chassisRotationStickMultiplier = 1;
 
 
   private Field2d  m_field = new Field2d();
   private SwerveDriveOdometry m_odometry;
-  private SwerveDriveKinematics m_Kinematics;
+  private SwerveDriveKinematics m_kinematics;
+
+  
 
   private SimDouble angle;
   private int dev;
-  double desirtedRobotRot, simYaw = 0;
+  double desiredRobotRot, simYaw = 0;
 
+  int desiredStateIndex = 0;
 
   Joysticks joyee;
 
@@ -73,9 +81,13 @@ public class DriveSubsystem extends SubsystemBase {
 
   AHRS navx = new AHRS(Port.kMXP);
 
+
+  String sCurveJSON = "paths/SCurve.wpilib.json";
+  Trajectory scurvepath = new Trajectory();
+
   public DriveSubsystem() {
     joyee = new Joysticks();
-    m_Kinematics = new SwerveDriveKinematics(
+    m_kinematics = new SwerveDriveKinematics(
       new Translation2d(Constants.kWheelBase / 2, -Constants.kTrackWidth / 2),
       new Translation2d(Constants.kWheelBase / 2, Constants.kTrackWidth / 2),
       new Translation2d(-Constants.kWheelBase / 2, -Constants.kTrackWidth / 2),
@@ -85,12 +97,21 @@ public class DriveSubsystem extends SubsystemBase {
     dev = SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]");
     angle = new SimDouble(SimDeviceDataJNI.getSimValueHandle(dev, "Yaw"));
     
-    m_odometry = new SwerveDriveOdometry(m_Kinematics, getRotation2d(), swerveModulePositions);
+    m_odometry = new SwerveDriveOdometry(m_kinematics, getRotation2d(), swerveModulePositions);
 
+    Pose2d initialPose = new Pose2d(Robot.path.getInitialPose().getX(), Robot.path.getInitialPose().getY(), getRotation2d());
+
+    m_odometry.resetPosition(getRotation2d(), swerveModulePositions, initialPose);
     m_odometry.update(getRotation2d(), swerveModulePositions);
     
+    
     putPIDValues();
+
     SmartDashboard.putData("Field", m_field);
+
+    m_field.getObject("traj").setTrajectory(Robot.path);
+
+    
   }
 
 
@@ -113,10 +134,16 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("odometryY", m_odometry.getPoseMeters().getY());
     SmartDashboard.putNumber("odometryRot", m_odometry.getPoseMeters().getRotation().getDegrees());
 
-    desirtedRobotRot += rot * 0.02; 
+    desiredRobotRot += rot * chassisRotationStickMultiplier; 
 
-    this.setMotors(x, y, rot);
 
+    // if(checkIfReachedDesiredState){
+    //   desiredStateIndex++;
+    // }
+    
+    //this.setMotors(x, y, rot);
+
+    checkIfReachedDesiredState();
 
     swerveModulePositions[0] = frontLeft.getPosition();
     swerveModulePositions[1] = frontRight.getPosition();
@@ -130,7 +157,7 @@ public class DriveSubsystem extends SubsystemBase {
       swerveModules[3].getState()
     };
 
-    ChassisSpeeds chassisSpeed = m_Kinematics.toChassisSpeeds(moduleStates);
+    ChassisSpeeds chassisSpeed = m_kinematics.toChassisSpeeds(moduleStates);
     double chassisRotationSpeed = chassisSpeed.omegaRadiansPerSecond;
 
 
@@ -160,7 +187,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void setMotors(double x, double y, double rot){
     x *= -kMaxSpeed; y *= kMaxSpeed;
-    rot *= kMaxAngularSpeed;
+    rot *= chassisRotationStickMultiplier;
 
     ChassisSpeeds chassisSpeeds;
 
@@ -169,9 +196,7 @@ public class DriveSubsystem extends SubsystemBase {
     else
       chassisSpeeds = new ChassisSpeeds(x, y, rot);
 
-    
-
-    SwerveModuleState[] moduleStates = m_Kinematics.toSwerveModuleStates(chassisSpeeds);
+    SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
     this.setModuleStates(moduleStates);
   }
 
@@ -193,7 +218,7 @@ public class DriveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("rotationP", 0);
     SmartDashboard.putNumber("rotationI", 0);
     SmartDashboard.putNumber("rotationD", 0);
-}
+  }
 
   public void updatePIDValues(){
       translationP = SmartDashboard.getNumber("translationP", 0);
@@ -203,5 +228,51 @@ public class DriveSubsystem extends SubsystemBase {
       rotationI = SmartDashboard.getNumber("rotationI", 0);
       rotationD = SmartDashboard.getNumber("rotationD", 0);
   }
+
+  void checkIfReachedDesiredState(){
+    State desiredState = Robot.path.getStates().get(desiredStateIndex);
+    
+    double deadZone = .25;
+
+    Pose2d currentPose = m_odometry.getPoseMeters();
+    Pose2d desiredPose = desiredState.poseMeters;
+
+    Transform2d distance = desiredPose.minus(currentPose);
+    
+    if(Math.abs(distance.getX()) <= deadZone && Math.abs(distance.getY()) <= deadZone){
+      
+      if(desiredStateIndex < Robot.path.getStates().size()-1)
+        desiredStateIndex++;
+      
+      return;
+    }
+
+    double magnitude =  Math.sqrt( Math.pow(distance.getX(), 2) + Math.pow(distance.getY(), 2) ) ;
+    double xSpeed = distance.getX();
+    double ySpeed = distance.getY(); 
+
+    xSpeed *= 1;
+    ySpeed *= 1;
+
+    ChassisSpeeds desiredSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, 0, getRotation2d());
+
+    SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(desiredSpeeds);
+    
+    
+    //setAllModuleStates(desiredState, -desiredRotation);
+    this.setModuleStates(moduleStates);
+  }
+
+  void setAllModuleStates(State desiredState, double desiredRotation){
+
+
+    frontLeft.setDesiredState(desiredState, Rotation2d.fromDegrees(desiredRotation));
+    frontRight.setDesiredState(desiredState, Rotation2d.fromDegrees(desiredRotation));
+    backLeft.setDesiredState(desiredState, Rotation2d.fromDegrees(desiredRotation));
+    backRight.setDesiredState(desiredState, Rotation2d.fromDegrees(desiredRotation));
+
+  }
+
+
   
 }
