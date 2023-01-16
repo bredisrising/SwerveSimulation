@@ -12,7 +12,7 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
   }
 
-  public static final double maxSpeed = 12.0;
+  public static final double maxSpeed = 13000;
   public static final double maxAngularVelocity = 2.5;
   public static final double wheelBaseX = 8;
   public static final double wheelBaseY = 9;
@@ -21,5 +21,6 @@ public final class Constants {
   public static final double kTrackWidth = Units.inchesToMeters(25.5);
   public static final double kWheelRadius = 3.0;
   
+
 
 }

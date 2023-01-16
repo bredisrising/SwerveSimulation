@@ -1,4 +1,13 @@
 {
+  "HALProvider": {
+    "Other Devices": {
+      "navX-Sensor[0]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
@@ -7,7 +16,6 @@
     "windows": {
       "/SmartDashboard/Field": {
         "Robot": {
-          "image": "D:\\Downloads\\teja.jpg",
           "length": 0.6859999895095825,
           "width": 0.6859999895095825
         },

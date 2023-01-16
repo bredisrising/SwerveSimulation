@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.SwerveModule;
+import frc.robot.SwervePath;
 
 public class DriveSubsystem extends SubsystemBase {
   
@@ -85,6 +86,7 @@ public class DriveSubsystem extends SubsystemBase {
   String sCurveJSON = "paths/SCurve.wpilib.json";
   Trajectory scurvepath = new Trajectory();
 
+  SwervePath path;
   public DriveSubsystem() {
     joyee = new Joysticks();
     m_kinematics = new SwerveDriveKinematics(
@@ -111,6 +113,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     m_field.getObject("traj").setTrajectory(Robot.path);
 
+    path = new SwervePath(getHeading(), 90);
     
   }
 
@@ -230,31 +233,8 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   void checkIfReachedDesiredState(){
-    State desiredState = Robot.path.getStates().get(desiredStateIndex);
-    
-    double deadZone = .25;
 
-    Pose2d currentPose = m_odometry.getPoseMeters();
-    Pose2d desiredPose = desiredState.poseMeters;
-
-    Transform2d distance = desiredPose.minus(currentPose);
-    
-    if(Math.abs(distance.getX()) <= deadZone && Math.abs(distance.getY()) <= deadZone){
-      
-      if(desiredStateIndex < Robot.path.getStates().size()-1)
-        desiredStateIndex++;
-      
-      return;
-    }
-
-    double magnitude =  Math.sqrt( Math.pow(distance.getX(), 2) + Math.pow(distance.getY(), 2) ) ;
-    double xSpeed = distance.getX();
-    double ySpeed = distance.getY(); 
-
-    xSpeed *= 1;
-    ySpeed *= 1;
-
-    ChassisSpeeds desiredSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, 0, getRotation2d());
+    ChassisSpeeds desiredSpeeds = path.getSpeeds(m_odometry.getPoseMeters());
 
     SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(desiredSpeeds);
     
