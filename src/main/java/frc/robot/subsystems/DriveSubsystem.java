@@ -113,7 +113,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     m_field.getObject("traj").setTrajectory(Robot.path);
 
-    path = new SwervePath(getHeading(), 90);
+    path = new SwervePath(getHeading(), 90, 0.25);
     
   }
 
