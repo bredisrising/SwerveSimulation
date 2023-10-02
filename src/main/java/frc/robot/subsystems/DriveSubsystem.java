@@ -4,13 +4,14 @@
 
 package frc.robot.subsystems;
 
+import java.util.List;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -18,6 +19,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.Trajectory.State;
 import edu.wpi.first.math.util.Units;
@@ -87,6 +89,8 @@ public class DriveSubsystem extends SubsystemBase {
   Trajectory scurvepath = new Trajectory();
 
   SwervePath path;
+  public static Trajectory squarePath;
+
   public DriveSubsystem() {
     joyee = new Joysticks();
     m_kinematics = new SwerveDriveKinematics(
@@ -110,8 +114,22 @@ public class DriveSubsystem extends SubsystemBase {
     putPIDValues();
 
     SmartDashboard.putData("Field", m_field);
+    SmartDashboard.putNumber("initial pose x", initialPose.getX());
+    SmartDashboard.putNumber("initial pose y", initialPose.getY());
 
-    m_field.getObject("traj").setTrajectory(Robot.path);
+
+    Pose2d initPose = initialPose;
+
+    TrajectoryConfig tc = new TrajectoryConfig(1, .5);
+    squarePath = TrajectoryGenerator.generateTrajectory(initPose, 
+    List.of(
+      new Translation2d(8, 4),
+      new Translation2d(8, 0),
+      new Translation2d(12, 0)
+    ), new Pose2d(initPose.getX(), initPose.getY(), Rotation2d.fromDegrees(initPose.getRotation().getDegrees()+0)), tc);
+
+
+    m_field.getObject("traj").setTrajectory(squarePath);
 
     path = new SwervePath(getHeading(), 90, 0.25);
     
@@ -121,32 +139,32 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
 
-    updatePIDValues();
+    // updatePIDValues();
 
-    double x = -joyee.getX();
-    double y = -joyee.getY();
-    double rot = joyee.getRot();
+    // double x = -joyee.getX();
+    // double y = -joyee.getY();
+    // double rot = joyee.getRot();
 
-    x = Math.abs(x) > 0.15 ? x : 0.0;
-    y = Math.abs(y) > 0.15 ? y : 0.0;
-    rot = Math.abs(rot) > 0.15 ? rot : 0.0;
-
-
-    SmartDashboard.putNumber("TransStickX", x);
-    SmartDashboard.putNumber("odometryX", m_odometry.getPoseMeters().getX());
-    SmartDashboard.putNumber("odometryY", m_odometry.getPoseMeters().getY());
-    SmartDashboard.putNumber("odometryRot", m_odometry.getPoseMeters().getRotation().getDegrees());
-
-    desiredRobotRot += rot * chassisRotationStickMultiplier; 
+    // x = Math.abs(x) > 0.15 ? x : 0.0;
+    // y = Math.abs(y) > 0.15 ? y : 0.0;
+    // rot = Math.abs(rot) > 0.15 ? rot : 0.0;
 
 
-    // if(checkIfReachedDesiredState){
-    //   desiredStateIndex++;
-    // }
+    // SmartDashboard.putNumber("TransStickX", x);
+    // SmartDashboard.putNumber("odometryX", m_odometry.getPoseMeters().getX());
+    // SmartDashboard.putNumber("odometryY", m_odometry.getPoseMeters().getY());
+    // SmartDashboard.putNumber("odometryRot", m_odometry.getPoseMeters().getRotation().getDegrees());
+
+    // desiredRobotRot += rot * chassisRotationStickMultiplier; 
+
+
+    // // if(checkIfReachedDesiredState){
+    // //   desiredStateIndex++;
+    // // }
     
-    //this.setMotors(x, y, rot);
+    // //this.setMotors(x, y, rot);
 
-    checkIfReachedDesiredState();
+    // checkIfReachedDesiredState();
 
     swerveModulePositions[0] = frontLeft.getPosition();
     swerveModulePositions[1] = frontRight.getPosition();
@@ -170,6 +188,8 @@ public class DriveSubsystem extends SubsystemBase {
     angle = new SimDouble(SimDeviceDataJNI.getSimValueHandle(dev, "Yaw"));
     angle.set(-Units.radiansToDegrees(simYaw));
 
+    
+    
     m_odometry.update(getRotation2d(), swerveModulePositions);
     
     m_field.setRobotPose(m_odometry.getPoseMeters());
@@ -185,7 +205,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   public double getHeading(){
     return Math.IEEEremainder(-navx.getAngle(), 360); 
-    //im pretty sure this is the same thing as doing module operator % 
+
   }
 
   public void setMotors(double x, double y, double rot){
@@ -253,6 +273,8 @@ public class DriveSubsystem extends SubsystemBase {
 
   }
 
-
+  public Pose2d getRobotPose(){
+    return m_odometry.getPoseMeters();
+  }
   
 }

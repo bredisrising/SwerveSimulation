@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -38,6 +39,10 @@ public class Robot extends TimedRobot {
     } catch (IOException e) {
       
     }
+
+
+
+
     m_robotContainer = new RobotContainer();
   }
 

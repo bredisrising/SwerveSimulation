@@ -19,21 +19,25 @@
           "length": 0.6859999895095825,
           "width": 0.6859999895095825
         },
-        "height": 12.210000038146973,
+        "height": 18.209999084472656,
         "traj": {
           "arrows": false,
           "length": 0.10000000149011612,
           "weight": 1.0,
           "width": 0.10000000149011612
         },
-        "width": 24.979999542236328,
+        "width": 30.979999542236328,
         "window": {
           "visible": true
         }
       }
     }
   },
-  "NetworkTables View": {
-    "visible": false
+  "NetworkTables": {
+    "transitory": {
+      "SmartDashboard": {
+        "open": true
+      }
+    }
   }
 }

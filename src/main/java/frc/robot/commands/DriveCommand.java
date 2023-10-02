@@ -27,7 +27,11 @@ public class DriveCommand extends CommandBase {
   
   @Override
   public void execute() {
-    
+    double x = this.joyee.getX();
+    double y = this.joyee.getY();
+    double rot = this.joyee.getRot();
+
+    this.swervee.setMotors(x, y, rot);
 
   }
 

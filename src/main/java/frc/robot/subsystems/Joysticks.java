@@ -19,10 +19,10 @@ public class Joysticks {
   }
 
   public double getX(){
-    return tStick.getX();
+    return -tStick.getX();
   }
   public double getY(){
-    return tStick.getY();
+    return -tStick.getY();
   }
 
   public double getRot(){
